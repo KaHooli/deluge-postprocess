@@ -1,5 +1,7 @@
-FROM linuxserver/nzbget
+FROM linuxserver/deluge
 MAINTAINER KaHooli
+
+VOLUME /scripts
 
 # Install Git
 RUN apk add --no-cache git
@@ -23,57 +25,17 @@ RUN pip install babelfish
 RUN pip install "guessit<2"
 RUN pip install "subliminal<2"
 RUN pip install qtfaststart
+RUN pip install gevent
 # As per https://github.com/mdhiggins/sickbeard_mp4_automator/issues/643
 ONBUILD RUN pip uninstall stevedore
 ONBUILD RUN pip install stevedore==1.19.1
-
-#Set MP4_Automator script settings in NZBGet settings
-RUN echo 'NZBGetPostProcess.py:MP4_FOLDER=/scripts/MP4_Automator' >> /config/nzbget.conf
-RUN echo 'NZBGetPostProcess.py:SHOULDCONVERT=True' >> /config/nzbget.conf
-
-#Check if MP4 Automator config exists in /config, copy if not
-ONBUILD RUN cp -n /scripts/MP4_Automator/autoProcess.ini.sample /config/autoProcess.ini
-ONBUILD RUN ln -s /config/autoProcess.ini /scripts/MP4_Automator/autoProcess.ini
 
 # Install nzbToMedia
 RUN apk add --no-cache git
 RUN git clone https://github.com/clinton-hall/nzbToMedia.git /scripts/nzbToMedia
 
-#Check if nzbToMedia config exists in /config, copy if not
-ONBUILD RUN cp -n /scripts/nzbToMedia/autoProcessMedia.cfg /config/autoProcessMedia.cfg
-ONBUILD RUN rm /scripts/nzbToMedia/autoProcessMedia.cfg
-ONBUILD RUN ln -s /config/autoProcessMedia.cfg /scripts/nzbToMedia/autoProcessMedia.cfg
-
-#Set MP4_Automator script settings in NZBGet settings
-RUN echo 'nzbToCouchPotato.py:auto_update=1' >> /config/nzbget.conf
-RUN echo 'nzbToCouchPotato.py:cpsCategory=Movie' >> /config/nzbget.conf
-RUN echo 'nzbToCouchPotato.py:cpsdelete_failed=0' >> /config/nzbget.conf
-RUN echo 'nzbToCouchPotato.py:getSubs=1' >> /config/nzbget.conf
-RUN echo 'nzbToCouchPotato.py:subLanguages=eng' >> /config/nzbget.conf
-RUN echo 'nzbToCouchPotato.py:transcode=1' >> /config/nzbget.conf
-RUN echo 'nzbToCouchPotato.py:duplicate=0' >> /config/nzbget.conf
-RUN echo 'nzbToCouchPotato.py:ignoreExtensions=' >> /config/nzbget.conf
-RUN echo 'nzbToCouchPotato.py:outputFastStart=1' >> /config/nzbget.conf
-RUN echo 'nzbToCouchPotato.py:embedSubs=0' >> /config/nzbget.conf
-RUN echo 'nzbToCouchPotato.py:extractSubs=1' >> /config/nzbget.conf
-RUN echo 'nzbToCouchPotato.py:hwAccel=1' >> /config/nzbget.conf
-RUN echo 'nzbToCouchPotato.py:outputVideoResolution=' >> /config/nzbget.conf
-RUN echo 'nzbToCouchPotato.py:outputAudioTrack2Codec=' >> /config/nzbget.conf
-RUN echo 'nzbToCouchPotato.py:outputAudioOtherCodec=' >> /config/nzbget.conf
-#RUN echo '' >> /config/nzbget.conf
-RUN echo 'nzbToGamez.py:auto_update=1' >> /config/nzbget.conf
-RUN echo 'nzbToHeadPhones.py:auto_update=1' >> /config/nzbget.conf
-RUN echo 'nzbToMedia.py:auto_update=1' >> /config/nzbget.conf
-RUN echo 'nzbToMylar.py:auto_update=1' >> /config/nzbget.conf
-RUN echo 'nzbToNzbDrone.py:auto_update=1' >> /config/nzbget.conf
-RUN echo 'nzbToSickBeard.py:auto_update=1' >> /config/nzbget.conf
-
 #Set script file permissions
 RUN chmod 775 -R /scripts
-
-#Set script directory setting in NZBGet
-#RUN /app/nzbget -o ScriptDir=/app/scripts,${MP4Automator_dir},/scripts/nzbToMedia
-ONBUILD RUN sed -i 's/^ScriptDir=.*/ScriptDir=\/app\/scripts;\/scripts\/MP4_Automator;\/scripts\/nzbToMedia/' /config/nzbget.conf
 
 #Adding Custom files
 ADD init/ /etc/my_init.d/

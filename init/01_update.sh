@@ -1,4 +1,6 @@
 #!/bin/bash
+apk update
+apk upgrade
 git -C /scripts/MP4_Automator/ reset HEAD --hard
 git -C /scripts/MP4_Automator/ pull
 chmod 775 -R /scripts
@@ -10,5 +12,6 @@ pip install --upgrade babelfish
 pip install --upgrade "guessit<2"
 pip install --upgrade "subliminal<2"
 pip install --upgrade qtfaststart
+pip install --upgrade gevent
 pip uninstall --yes stevedore
 pip install stevedore==1.19.1
